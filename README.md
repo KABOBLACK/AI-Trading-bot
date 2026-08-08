@@ -9,3 +9,8 @@ ai-trading-bot/
 ├── tests/
 ├── config/
 └── data/
+
+requirements.txt
+
+pandas
+numpy
