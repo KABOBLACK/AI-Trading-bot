@@ -6,6 +6,22 @@ The goal of this project is to develop a complete trading system that can analyz
 
 ## Project Status
 
+## Development Status
+
+![Tests](https://github.com/KABOBLACK/ai-trading-bot/actions/workflows/test.yml/badge.svg)
+
+**Current stage:** Version 1 — Foundation
+
+The system currently supports:
+
+- Strategy signals
+- Basic backtesting
+- Risk management
+- Position sizing
+- Paper-trading architecture
+- Automated tests
+- GitHub Actions
+
 🚧 Version 1 — In Development
 
 Current features:
