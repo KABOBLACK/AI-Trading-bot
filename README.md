@@ -10,7 +10,3 @@ ai-trading-bot/
 ├── config/
 └── data/
 
-requirements.txt
-
-pandas
-numpy
