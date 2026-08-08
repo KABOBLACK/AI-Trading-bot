@@ -7,30 +7,42 @@ from risk.risk_manager import calculate_position_size
 def run_backtest(
     data,
     starting_balance=1000,
-    risk_percent=1
+    risk_percent=1,
+    stop_loss_percent=1,
+    take_profit_percent=2
 ):
     balance = starting_balance
-    position = None
 
+    position = None
     entry_price = 0
     stop_loss = 0
+    take_profit = 0
     position_size = 0
 
     trades = []
 
     for i in range(30, len(data)):
+
         current_data = data.iloc[:i + 1]
         price = data["close"].iloc[i]
 
         signal = generate_signal(current_data)
 
-        # Open LONG position
+        # ==========================
+        # OPEN LONG POSITION
+        # ==========================
+
         if signal == "BUY" and position is None:
 
             entry_price = price
 
-            # Example: 1% stop-loss
-            stop_loss = entry_price * 0.99
+            stop_loss = entry_price * (
+                1 - stop_loss_percent / 100
+            )
+
+            take_profit = entry_price * (
+                1 + take_profit_percent / 100
+            )
 
             position_size = calculate_position_size(
                 balance,
@@ -41,29 +53,58 @@ def run_backtest(
 
             position = "LONG"
 
-        # Close LONG position
-        elif signal == "SELL" and position == "LONG":
+        # ==========================
+        # MANAGE OPEN POSITION
+        # ==========================
 
-            exit_price = price
+        elif position == "LONG":
 
-            profit = (
-                exit_price - entry_price
-            ) * position_size
+            exit_reason = None
+            exit_price = None
 
-            balance += profit
+            # Stop-loss
+            if price <= stop_loss:
+                exit_price = stop_loss
+                exit_reason = "STOP_LOSS"
 
-            trade = Trade(
-                direction="LONG",
-                entry_price=entry_price,
-                exit_price=exit_price,
-                position_size=position_size,
-                profit=profit
-            )
+            # Take-profit
+            elif price >= take_profit:
+                exit_price = take_profit
+                exit_reason = "TAKE_PROFIT"
 
-            trades.append(trade.to_dict())
+            # Strategy exit
+            elif signal == "SELL":
+                exit_price = price
+                exit_reason = "STRATEGY_EXIT"
 
-            position = None
-            position_size = 0
+            # ==========================
+            # CLOSE POSITION
+            # ==========================
+
+            if exit_price is not None:
+
+                profit = (
+                    exit_price - entry_price
+                ) * position_size
+
+                balance += profit
+
+                trade = Trade(
+                    direction="LONG",
+                    entry_price=entry_price,
+                    exit_price=exit_price,
+                    position_size=position_size,
+                    profit=profit
+                )
+
+                trade_data = trade.to_dict()
+
+                trade_data["exit_reason"] = exit_reason
+
+                trades.append(trade_data)
+
+                position = None
+                position_size = 0
 
     performance = calculate_performance(
         trades,
