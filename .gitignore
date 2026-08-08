@@ -220,3 +220,5 @@ __marimo__/
 data/trade_history.csv
 __pycache__/
 *.pyc
+
+data/test_bad_data.csv
