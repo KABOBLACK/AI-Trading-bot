@@ -24,7 +24,11 @@ def run_backtest(
     for i in range(30, len(data)):
 
         current_data = data.iloc[:i + 1]
-        price = data["close"].iloc[i]
+
+        open_price = data["open"].iloc[i]
+        high_price = data["high"].iloc[i]
+        low_price = data["low"].iloc[i]
+        close_price = data["close"].iloc[i]
 
         signal = generate_signal(current_data)
 
@@ -34,7 +38,7 @@ def run_backtest(
 
         if signal == "BUY" and position is None:
 
-            entry_price = price
+            entry_price = close_price
 
             stop_loss = entry_price * (
                 1 - stop_loss_percent / 100
@@ -54,31 +58,34 @@ def run_backtest(
             position = "LONG"
 
         # ==========================
-        # MANAGE OPEN POSITION
+        # MANAGE LONG POSITION
         # ==========================
 
         elif position == "LONG":
 
-            exit_reason = None
             exit_price = None
+            exit_reason = None
 
-            # Stop-loss
-            if price <= stop_loss:
+            # Stop-loss hit
+            if low_price <= stop_loss:
+
                 exit_price = stop_loss
                 exit_reason = "STOP_LOSS"
 
-            # Take-profit
-            elif price >= take_profit:
+            # Take-profit hit
+            elif high_price >= take_profit:
+
                 exit_price = take_profit
                 exit_reason = "TAKE_PROFIT"
 
             # Strategy exit
             elif signal == "SELL":
-                exit_price = price
+
+                exit_price = close_price
                 exit_reason = "STRATEGY_EXIT"
 
             # ==========================
-            # CLOSE POSITION
+            # CLOSE TRADE
             # ==========================
 
             if exit_price is not None:
