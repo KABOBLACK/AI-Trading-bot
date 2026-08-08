@@ -3,17 +3,22 @@ import pandas as pd
 from backtest.backtester import run_backtest
 
 
-data = pd.read_csv("data/sample_prices.csv")
+data = pd.read_csv("data/sample_ohlcv.csv")
 
-result = run_backtest(data)
-
+result = run_backtest(
+    data,
+    starting_balance=1000,
+    risk_percent=1,
+    stop_loss_percent=1,
+    take_profit_percent=2
+)
 
 print("================================")
-print("      AI TRADING BOT")
-print("      BACKTEST RESULTS")
+print("       AI TRADING BOT")
+print("       BACKTEST RESULTS")
 print("================================")
 
-print(f"Starting Balance : ${result['ending_balance'] - result['profit_loss']:.2f}")
+print(f"Starting Balance : $1000.00")
 print(f"Ending Balance   : ${result['ending_balance']:.2f}")
 print(f"Profit / Loss    : ${result['profit_loss']:.2f}")
 
