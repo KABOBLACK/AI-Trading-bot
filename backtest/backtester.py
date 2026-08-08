@@ -1,13 +1,20 @@
 from strategy.strategy import generate_signal
 from backtest.performance import calculate_performance
 from backtest.trade import Trade
+from risk.risk_manager import calculate_position_size
 
 
-def run_backtest(data, starting_balance=1000):
+def run_backtest(
+    data,
+    starting_balance=1000,
+    risk_percent=1
+):
     balance = starting_balance
     position = None
+
     entry_price = 0
-    position_size = 1
+    stop_loss = 0
+    position_size = 0
 
     trades = []
 
@@ -17,12 +24,24 @@ def run_backtest(data, starting_balance=1000):
 
         signal = generate_signal(current_data)
 
-        # Open trade
+        # Open LONG position
         if signal == "BUY" and position is None:
-            position = "LONG"
+
             entry_price = price
 
-        # Close trade
+            # Example: 1% stop-loss
+            stop_loss = entry_price * 0.99
+
+            position_size = calculate_position_size(
+                balance,
+                risk_percent,
+                entry_price,
+                stop_loss
+            )
+
+            position = "LONG"
+
+        # Close LONG position
         elif signal == "SELL" and position == "LONG":
 
             exit_price = price
@@ -44,6 +63,7 @@ def run_backtest(data, starting_balance=1000):
             trades.append(trade.to_dict())
 
             position = None
+            position_size = 0
 
     performance = calculate_performance(
         trades,
