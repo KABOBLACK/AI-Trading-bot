@@ -1,0 +1,8 @@
+{
+    "mode": "paper",
+    "starting_balance": 1000,
+    "risk_percent": 1,
+    "symbol": "BTCUSDT",
+    "timeframe": "1h",
+    "strategy": "moving_average"
+}
