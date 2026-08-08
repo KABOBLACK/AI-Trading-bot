@@ -1,6 +1,7 @@
 from strategy.strategy import generate_signal
 from backtest.performance import calculate_performance
 from backtest.trade import Trade
+from backtest.trade_logger import save_trades
 from risk.risk_manager import calculate_position_size
 
 
@@ -36,7 +37,6 @@ def run_backtest(
         # Open LONG position
         if signal == "BUY" and position is None:
 
-            # Slippage makes the actual entry slightly worse
             entry_price = close_price * (
                 1 + slippage_percent / 100
             )
@@ -58,27 +58,29 @@ def run_backtest(
 
             position = "LONG"
 
-        # Manage open position
+        # Manage LONG position
         elif position == "LONG":
 
             exit_price = None
             exit_reason = None
 
             if low_price <= stop_loss:
+
                 exit_price = stop_loss
                 exit_reason = "STOP_LOSS"
 
             elif high_price >= take_profit:
+
                 exit_price = take_profit
                 exit_reason = "TAKE_PROFIT"
 
             elif signal == "SELL":
+
                 exit_price = close_price
                 exit_reason = "STRATEGY_EXIT"
 
             if exit_price is not None:
 
-                # Slippage makes the actual exit slightly worse
                 actual_exit_price = exit_price * (
                     1 - slippage_percent / 100
                 )
@@ -87,15 +89,17 @@ def run_backtest(
                     actual_exit_price - entry_price
                 ) * position_size
 
-                trade_value = (
+                entry_value = (
                     entry_price * position_size
                 )
 
+                exit_value = (
+                    actual_exit_price * position_size
+                )
+
                 fees = (
-                    trade_value * fee_percent / 100
-                    + actual_exit_price
-                    * position_size
-                    * fee_percent / 100
+                    entry_value * fee_percent / 100
+                    + exit_value * fee_percent / 100
                 )
 
                 net_profit = gross_profit - fees
@@ -120,6 +124,10 @@ def run_backtest(
                 position = None
                 position_size = 0
 
+    # Save trade history
+    save_trades(trades)
+
+    # Calculate performance
     performance = calculate_performance(
         trades,
         starting_balance
