@@ -1,5 +1,6 @@
 from data.data_provider import MarketDataProvider
 from data.market_data import load_csv_data
+import os
 
 
 class CSVDataProvider(MarketDataProvider):
@@ -11,6 +12,11 @@ class CSVDataProvider(MarketDataProvider):
         self.filename = filename
 
     def get_ohlcv(self, symbol, timeframe, limit=100):
+        if not os.path.exists(self.filename):
+            raise FileNotFoundError(f"CSV data file not found: {self.filename}")
+
         data = load_csv_data(self.filename)
 
-        return data.tail(limit).reset_index(drop=True)
+        # Return last 'limit' rows in chronological order
+        result = data.tail(limit).reset_index(drop=True)
+        return result
